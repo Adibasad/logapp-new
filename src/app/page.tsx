@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+// Define User interface for type safety
+interface User {
+  name: string;
+  email: string;
+}
+
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any | null>(null); // Store the full user object
+  const [user, setUser] = useState<User | null>(null); // Typed state for user
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       try {
-        const parsedUser = JSON.parse(userData);
+        const parsedUser: User = JSON.parse(userData); // Ensure parsedUser matches `User` type
         if (parsedUser && parsedUser.name) {
           setUser(parsedUser); // Set the user if valid
         } else {
@@ -23,9 +29,14 @@ export default function Home() {
         router.push("/login");
       }
     } else {
-      router.push("/login");
+      router.push("/"); // Redirect to home if no user data is found
     }
-  }, [router]); // Dependency array includes `router`
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/"); // Redirect to home after logout
+  };
 
   return (
     <main
@@ -58,10 +69,7 @@ export default function Home() {
               border: "none",
               cursor: "pointer",
             }}
-            onClick={() => {
-              localStorage.clear();
-              router.push("/login");
-            }}
+            onClick={handleLogout}
           >
             Logout
           </button>
@@ -98,14 +106,15 @@ export default function Home() {
       </div>
 
       {/* Main content in the center */}
-      {user && (
+      {user ? (
         <h2 style={{ fontSize: "1.5rem" }}>
           Welcome, {user.name}! {/* Display user's name */}
         </h2>
+      ) : (
+        <h1 style={{ fontSize: "2.5rem", fontWeight: "bold" }}>
+          My Login Application
+        </h1>
       )}
-      <h1 style={{ fontSize: "2.5rem", fontWeight: "bold" }}>
-        My Login Application
-      </h1>
     </main>
   );
 }

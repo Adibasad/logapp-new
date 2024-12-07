@@ -6,16 +6,23 @@ import styles from "./register.module.css";
 
 export default function Register() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); // New state for the user's name
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [name, setName] = useState<string>(""); // State for the user's name
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Input validation
+    if (!name || !email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
     setIsLoading(true);
-    setError(null); // Reset error before new request
+    setError(null); // Reset any previous errors
 
     try {
       const res = await fetch("/api/register", {
@@ -26,7 +33,6 @@ export default function Register() {
         body: JSON.stringify({ email, password, name }), // Send name along with email and password
       });
 
-      // Handle non-OK responses from the backend
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Something went wrong!");
@@ -37,9 +43,13 @@ export default function Register() {
 
       // Redirect to login page after successful registration
       router.push("/login");
-    } catch (error: any) {
-      // Handle both network and custom errors
-      setError(error.message || "An unexpected error occurred. Please try again.");
+    } catch (error: unknown) {
+      // Safely handle errors and fallback to a generic message
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
       console.error("Error:", error);
     } finally {
       setIsLoading(false); // End loading state after completion
@@ -55,27 +65,29 @@ export default function Register() {
           type="text"
           placeholder="Full Name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           className={styles.input}
+          disabled={isLoading} // Disable input during loading
         />
         <input
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           className={styles.input}
+          disabled={isLoading} // Disable input during loading
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           className={styles.input}
+          disabled={isLoading} // Disable input during loading
         />
         <button type="submit" className={styles.button} disabled={isLoading}>
           {isLoading ? "Signing Up..." : "Sign Up"}
         </button>
-        
       </form>
     </div>
   );
