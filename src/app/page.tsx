@@ -2,23 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from './home.module.css';
 
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<any | null>(null); // Store the full user object
 
   useEffect(() => {
-    // Check if user data exists in localStorage
     const userData = localStorage.getItem("user");
-
     if (userData) {
-      setUser(JSON.parse(userData)); // Parse the user object and set it to state
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser && parsedUser.name) {
+          setUser(parsedUser); // Set the user if valid
+        } else {
+          console.error("Invalid user data, redirecting to login");
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        router.push("/login");
+      }
     } else {
-      // Redirect to login page if no user data found
       router.push("/login");
     }
-  }, [router]);
+  }, [router]); // Dependency array includes `router`
 
   return (
     <main
@@ -42,21 +49,22 @@ export default function Home() {
         }}
       >
         {user ? (
-          <>
-            <button
-              style={{
-                padding: "10px 15px",
-                borderRadius: "5px",
-                backgroundColor: "#0070f3",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-              }}
-              onClick={() => router.push("/login")}
-            >
-              Logout
-            </button>
-          </>
+          <button
+            style={{
+              padding: "10px 15px",
+              borderRadius: "5px",
+              backgroundColor: "#0070f3",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              localStorage.clear();
+              router.push("/login");
+            }}
+          >
+            Logout
+          </button>
         ) : (
           <>
             <button
@@ -91,8 +99,8 @@ export default function Home() {
 
       {/* Main content in the center */}
       {user && (
-        <h2 style={{ fontSize: "2.5rem", fontWeight: "bold" }}>
-          Welcome, {user.name} {/* Display user's name in center */}
+        <h2 style={{ fontSize: "1.5rem" }}>
+          Welcome, {user.name}! {/* Display user's name */}
         </h2>
       )}
       <h1 style={{ fontSize: "2.5rem", fontWeight: "bold" }}>
