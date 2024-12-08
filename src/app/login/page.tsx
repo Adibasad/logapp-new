@@ -25,48 +25,43 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-<<<<<<< HEAD
-       const rawResponse = await res.text(); // Log the raw response
-       console.log("Raw Response from backend:", rawResponse);
-
-    let data;
-    try {
-        data = JSON.parse(rawResponse); // Manually parse JSON
-    } catch (err) {
-        throw new Error("Invalid JSON response from server: " + rawResponse);
-    }
+      const rawResponse = await res.text(); // Log the raw response
+      console.log("Raw Response from backend:", rawResponse);
 
       if (!res.ok) {
-        // Handle error based on the parsed response
-        throw new Error(data.error || "Something went wrong!");
-    }
-
-    console.log("Login successful:", data);
-    localStorage.setItem("user", JSON.stringify(data.user));
-=======
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Something went wrong!");
+        // Attempt to parse JSON if response is not okay
+        try {
+          const errorData = JSON.parse(rawResponse);
+          throw new Error(errorData.error || "Something went wrong!");
+        } catch  {
+          throw new Error(rawResponse || "An unexpected error occurred!");
+        }
       }
 
-      const data = await res.json();
-      console.log("User logged in successfully", data);
+      // Successfully logged in, parse JSON
+      let data;
+      try {
+        data = JSON.parse(rawResponse); // Manually parse JSON
+      } catch {
+        throw new Error("Invalid JSON response from server: " + rawResponse);
+      }
 
-      // Store the user data in localStorage or cookies for authentication
-      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log("Login successful:", data);
+      localStorage.setItem("user", JSON.stringify(data.user)); // Store user data
 
->>>>>>> 30264127b0c870a374a3d48d1ec2c7f5b148d588
       // Redirect to dashboard or home page after successful login
       router.push("/");
     } catch (error: unknown) {
-  if (error instanceof Error) {
-    setError(error.message || "An unexpected error occurred. Please try again.");
-    console.error("Error:", error);
-  } else {
-    setError("An unknown error occurred. Please try again.");
-    console.error("Unexpected error type:", error);
-  }
-}
+      if (error instanceof Error) {
+        setError(error.message || "An unexpected error occurred. Please try again.");
+        console.error("Error:", error);
+      } else {
+        setError("An unknown error occurred. Please try again.");
+        console.error("Unexpected error type:", error);
+      }
+    } finally {
+      setIsLoading(false); // End loading state after completion
+    }
   };
 
   return (
