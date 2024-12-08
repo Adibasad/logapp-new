@@ -18,7 +18,7 @@ export default function Login() {
 
     try {
       const controller = new AbortController(); // Add a timeout
-      const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+      const timeout = setTimeout(() => controller.abort(), 30000); // 10 seconds timeout
 
       const res = await fetch("/api/login", {
         method: "POST",
