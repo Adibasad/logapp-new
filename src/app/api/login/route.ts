@@ -9,45 +9,50 @@ interface LoginRequestBody {
 }
 
 export async function POST(request: Request) {
+  const startTime = Date.now(); // Start timer
+
   try {
-    console.log("Starting login request...");
+    console.log("Request received at:", startTime);
 
     const { email, password }: LoginRequestBody = await request.json();
-    const uri = process.env.MONGODB_URI;
+    console.log("Parsed request data:", { email });
 
+    const uri = process.env.MONGODB_URI;
     if (!uri) {
-      console.error("MongoDB URI not defined.");
+      console.error("MongoDB URI not defined");
       return NextResponse.json({ error: "MongoDB URI not defined" }, { status: 500 });
     }
 
     console.log("Connecting to MongoDB...");
     const client = new MongoClient(uri);
     await client.connect();
+    console.log("Connected to MongoDB:", Date.now() - startTime, "ms");
 
     const database = client.db("test");
     const usersCollection = database.collection("users");
 
-    console.log("Looking up user...");
     const user = await usersCollection.findOne({ email });
+    console.log("User fetched:", user);
 
     if (!user) {
-      console.error("User not found.");
+      console.error("User not found");
       return NextResponse.json({ error: "User not found" }, { status: 400 });
     }
 
-    console.log("Comparing passwords...");
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log("Password validation complete:", Date.now() - startTime, "ms");
+
     if (!isPasswordValid) {
-      console.error("Invalid password.");
+      console.error("Invalid password");
       return NextResponse.json({ error: "Invalid password" }, { status: 400 });
     }
 
     await client.close();
+    console.log("MongoDB connection closed");
 
-    console.log("Login successful.");
     return NextResponse.json({ user: { email: user.email, name: user.name } });
   } catch (error) {
-    console.error("Error during login:", error);
+    console.error("Error during login:", error, "at", Date.now() - startTime, "ms");
     return NextResponse.json({ error: "Failed to log in", details: error }, { status: 500 });
   }
 }
