@@ -35,7 +35,7 @@ export default function Home() {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.push("/"); // Redirect to home after logout
+    router.push("/login"); // Redirect to home after logout
   };
 
   return (

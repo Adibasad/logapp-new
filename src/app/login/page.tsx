@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./login.module.css";
 
 export default function Login() {
   const router = useRouter();
@@ -22,49 +25,78 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      // Handle non-OK responses from the backend
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Something went wrong!");
-      }
+       const rawResponse = await res.text(); // Log the raw response
+       console.log("Raw Response from backend:", rawResponse);
 
-      const data = await res.json();
-      console.log("User logged in successfully", data);
-
-      // Redirect to homepage after successful login
-      router.push("/home");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message || "An unexpected error occurred. Please try again.");
-        console.error("Error:", error);
-      } else {
-        setError("An unknown error occurred. Please try again.");
-        console.error("Unexpected error type:", error);
-      }
-    } finally {
-      setIsLoading(false); // End loading state after completion
+    let data;
+    try {
+        data = JSON.parse(rawResponse); // Manually parse JSON
+    } catch (err) {
+        throw new Error("Invalid JSON response from server: " + rawResponse);
     }
+
+      if (!res.ok) {
+        // Handle error based on the parsed response
+        throw new Error(data.error || "Something went wrong!");
+    }
+
+    console.log("Login successful:", data);
+    localStorage.setItem("user", JSON.stringify(data.user));
+      // Redirect to dashboard or home page after successful login
+      router.push("/");
+    } catch (error: unknown) {
+  if (error instanceof Error) {
+    setError(error.message || "An unexpected error occurred. Please try again.");
+    console.error("Error:", error);
+  } else {
+    setError("An unknown error occurred. Please try again.");
+    console.error("Unexpected error type:", error);
+  }
+}
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Form fields here */}
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
-      </button>
-      {error && <p>{error}</p>}
-    </form>
+    <div className={styles.container}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <h2>Login</h2>
+        {error && <p className={styles.error}>{error}</p>}
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={styles.input}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={styles.input}
+        />
+        <button type="submit" className={styles.button} disabled={isLoading}>
+          {isLoading ? "Logging In..." : "Log In"}
+        </button>
+      </form>
+
+      {/* Sign Up Option */}
+      <div className={styles.signupOption}>
+        <p>
+          Don&apos;t have an account?{" "}
+          <button
+            onClick={() => router.push("/register")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#0070f3",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            Sign Up
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }
