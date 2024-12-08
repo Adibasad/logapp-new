@@ -25,7 +25,7 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const rawResponse = await res.text(); // Log the raw response
+      const rawResponse = await res.json(); // Log the raw response
       console.log("Raw Response from backend:", rawResponse);
 
       if (!res.ok) {
