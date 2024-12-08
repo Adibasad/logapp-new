@@ -28,7 +28,8 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
         signal: controller.signal,
       });
-
+      console.log("hii");
+      console.log(res);
       clearTimeout(timeout); // Clear timeout if request completes
 
       const rawResponse = await res.text(); // Log the raw response
