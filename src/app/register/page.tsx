@@ -42,7 +42,7 @@ export default function Register() {
         let errorData;
         try {
           errorData = JSON.parse(rawResponse);
-        } catch (err) {
+        } catch  {
           throw new Error(rawResponse || "An unexpected error occurred!");
         }
         throw new Error(errorData.error || "Something went wrong!");
