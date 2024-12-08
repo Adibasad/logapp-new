@@ -25,6 +25,7 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
+<<<<<<< HEAD
        const rawResponse = await res.text(); // Log the raw response
        console.log("Raw Response from backend:", rawResponse);
 
@@ -42,6 +43,19 @@ export default function Login() {
 
     console.log("Login successful:", data);
     localStorage.setItem("user", JSON.stringify(data.user));
+=======
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Something went wrong!");
+      }
+
+      const data = await res.json();
+      console.log("User logged in successfully", data);
+
+      // Store the user data in localStorage or cookies for authentication
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+>>>>>>> 30264127b0c870a374a3d48d1ec2c7f5b148d588
       // Redirect to dashboard or home page after successful login
       router.push("/");
     } catch (error: unknown) {
