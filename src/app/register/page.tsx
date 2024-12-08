@@ -33,14 +33,23 @@ export default function Register() {
         body: JSON.stringify({ email, password, name }), // Send name along with email and password
       });
 
+      // Read the raw response text to handle non-JSON errors gracefully
+      const rawResponse = await res.text();
+      console.log("Raw Response from backend:", rawResponse);
+
       if (!res.ok) {
-        const errorData = await res.json();
+        // Try parsing the response as JSON; fallback to raw response
+        let errorData;
+        try {
+          errorData = JSON.parse(rawResponse);
+        } catch (err) {
+          throw new Error(rawResponse || "An unexpected error occurred!");
+        }
         throw new Error(errorData.error || "Something went wrong!");
       }
 
-      const data = await res.json();
+      const data = JSON.parse(rawResponse); // Parse JSON response
       console.log("User registered successfully", data);
-
       // Redirect to login page after successful registration
       router.push("/login");
     } catch (error: unknown) {
