@@ -17,42 +17,49 @@ export default function Login() {
     setError(null); // Reset error before new request
 
     try {
+      const controller = new AbortController(); // Add a timeout
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+
       const res = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       });
 
-      const rawResponse = await res.json(); // Log the raw response
+      clearTimeout(timeout); // Clear timeout if request completes
+
+      const rawResponse = await res.text(); // Log the raw response
       console.log("Raw Response from backend:", rawResponse);
 
       if (!res.ok) {
         // Attempt to parse JSON if response is not okay
+        let errorMessage = rawResponse;
         try {
           const errorData = JSON.parse(rawResponse);
-          throw new Error(errorData.error || "Something went wrong!");
-        } catch  {
-          throw new Error(rawResponse || "An unexpected error occurred!");
+          errorMessage = errorData.error || "Something went wrong!";
+        } catch {
+          console.error("Error parsing error response:", rawResponse);
         }
+        throw new Error(errorMessage);
       }
 
-      // Successfully logged in, parse JSON
-      let data;
-      try {
-        data = JSON.parse(rawResponse); // Manually parse JSON
-      } catch {
-        throw new Error("Invalid JSON response from server: " + rawResponse);
-      }
-
+      // Parse successful response
+      const data = JSON.parse(rawResponse);
       console.log("Login successful:", data);
-      localStorage.setItem("user", JSON.stringify(data.user)); // Store user data
+
+      // Store user data in localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       // Redirect to dashboard or home page after successful login
       router.push("/");
     } catch (error: unknown) {
-      if (error instanceof Error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+        console.error("Request timeout error:", error);
+      } else if (error instanceof Error) {
         setError(error.message || "An unexpected error occurred. Please try again.");
         console.error("Error:", error);
       } else {
